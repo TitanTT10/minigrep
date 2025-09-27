@@ -6,17 +6,10 @@ fn main() {
         std::process::exit(1);
     });
 
-    println!("Searching for {}", config.query);
-    println!("In file {}", config.file_path);
-
-    run(config);
-}
-
-fn run(config: Config) {
-    let contents = std::fs::read_to_string(config.file_path)
-        .expect("Should have been able to read the file");
-
-    println!("With text:\n{}", contents);
+    if let Err(err) = run(config) {
+        println!("Application error: {}", err);
+        std::process::exit(1);
+    }
 }
 
 struct Config {
@@ -33,4 +26,14 @@ impl Config {
 
         Ok(Self { query, file_path })
     }
+}
+
+fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    let contents = std::fs::read_to_string(config.file_path)?;
+
+    for line in minigrep::search(&config.query, &contents) {
+        println!("{}", line);
+    }
+
+    Ok(())
 }
